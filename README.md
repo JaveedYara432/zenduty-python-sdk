@@ -67,13 +67,11 @@ class SDKTeamsClient(SDKTestingClient):
         create_team = self.teams_client.create_team(self.test_team_name)
         return create_team
 ````
-
 #### GET - List Teams
 #### Will fetch all the teams present in that account
 ````python
 list_teams = self.teams_client.list_teams()
 ````
-
 #### PATCH - Update teams
 #### Update the team 
 ````python
@@ -81,7 +79,6 @@ update_teams = self.teams_client.update_team(
             <unique_id of a team>, name="Updated Team Name"
         )
 ````
-
 #### DEL - Delete team
 ````python
 delete_teams = self.teams_client.delete_team(<unique_id of a team>)
@@ -113,7 +110,6 @@ class SDKAccountMembersClient(SDKTeamsClient):
             email=test_email,
         )
 ```
-
 #### PATCH - Update Account Member
 ```python
 update_account_member = self.account_member_client.update_account_member(
@@ -123,7 +119,6 @@ update_account_member = self.account_member_client.update_account_member(
     role=2,
 )
 ```
-
 #### GET - Get Account member
 #### Get details about a particular team member
 ````python
@@ -131,20 +126,13 @@ account_member = self.account_member_client.get_account_member(
             account_member_id="<unique_id Of a member>"
         )
 ````
-
-
 #### GET - Get all the members of a team
 #### Get details of all the members of the team.
-
 ````python
 account_members = self.account_member_client.get_all_members()
 ````
-
-
 #### DEL - Delete an Account member
 #### Delete a particular member of the team.
-
-
 ````python
 delete_account_member = self.account_member_client.delete_account_member(account_member_id="<unique_id Of a member>")
 ````
@@ -197,9 +185,216 @@ delete_account_role = self.account_role_client.delete_account_role(
 ````
 
 ## Global Event Router
+
+Global Event Router is a webhook, when sent requests to it, would navigate it to a particular integration, to a particular request, if matched with the alert rules defined, would raise an alert.
+
+Refer to this, for more information, https://apidocs.zenduty.com/#tag/Global-Router.
+
+#### POST - Create Router
+````python
+class SDKGERClients(SDKTestingClient):
+    def __init__(self):
+        super().__init__()
+        self.router_client = RouterClient(client=self.client)
+        self.router_name = f"Router - {self.datetime_timestamp}"
+
+    def create_router(self):
+        create_router = self.router_client.create_router(
+            name=self.router_name,
+            description="Router Description",
+        )
+````
+#### GET - List Routers
+````python
+list_router = self.router_client.get_all_routers()
+````
+#### GET - Get Router by ID
+````python
+find_router = self.router_client.get_router_by_id(router_id=<unique_id of a router>)
+````
+#### PATCH - Update a particular Router
+````python
+update_router = self.router_client.update_router(
+    <unique_id of a router>,
+    name="Updated Router Name",
+    description="Updated Router Description",
+)
+````
+#### DEL - Delete a particular Router
+````python
+delete_router = self.router_client.delete_router(<unique_id of a router>)
+````
+
 ## Events
+This object represents the events of an integration.
+
+#### POST - Create an Event
+````python
+class SDKEventsClient(SDKTestingClient):
+    def __init__(self):
+        super().__init__()
+        self.event_client = EventClient(client=self.client)
+        self.event_name = f"Event - {self.datetime_timestamp}"
+
+    def get_router_client(self):
+        get_router = self.event_client.get_router_client()
+
+    def test_create_event(self):
+        create_event = self.event_client.create_event(
+            integration_key=<unique_id of an Integration>,
+            alert_type="info",
+            message="This is info alert",
+            summary="This is the incident summary111",
+            entity_id=123455,
+            payload={
+                "status": "ACME Payments are failing",
+                "severity": "1",
+                "project": "kubeprod",
+            },
+            urls=[
+                {
+                    "link_url": "https://www.example.com/alerts/12345/",
+                    "link_text": "Alert URL",
+                }
+            ],
+        )
+
+````
+
 ## Escalation Policy
+Escalation policies dictate how an incident created within a service escalates within your team.
+
+#### POST - Create an Escalation Policy
+````python
+class SDKEscalationPolicyClient(SDKTeamsClient):
+    # Inheriting a few methods from the Teams Object.
+    def __init__(self):
+        super().__init__()
+        self.uuid = self.generate_uuid()
+        self.teams_client = TeamsClient(client=self.client)
+        self.account_member_client = AccountMemberClient(client=self.client)
+        self.team_ids.append(self.create_team(self))
+        self.team_by_id = self.teams_client.find_team_by_id(
+            team_id="<unique_id of a team>"
+        )
+        self.escalation_policy_client = self.teams_client.get_escalation_policy_client(
+            self.team_by_id
+        )
+        self.ep_name = f"EP - {self.datetime_timestamp}"
+
+    def create_escalation_policy(self):
+
+        self.rule_build = [
+            {
+                "delay": 0,
+                "targets": [
+                    {"target_type": 2, "target_id": "3544118d-fbf5-41e5-ae6c-5"}
+                ],
+                "position": 1,
+            }
+        ]
+        create_escalation_policy = self.escalation_policy_client.create_esp(
+            self.ep_name, rules=self.rule_build
+        )
+
+````
+#### GET - Get Escalation Policies by ID
+````python
+self.escalation_policy_client.get_esp_by_id(
+    esp_id=<unique_id of an escalation policy>
+)
+````
+#### POST - Update Escalation Policy
+````python
+update_esp = self.escalation_policy_client.update_esp(
+            esp=<unique_id of an escalation policy>,
+            name="Test Updated",
+            rules=self.rule_build,
+        )
+````
+#### GET - Get all the escalation policies
+````python
+all_esp = self.escalation_policy_client.get_all_policies()
+````
+#### DEL - Delete an Escalation Policy
+````python
+delete_esp = self.escalation_policy_client.delete_esp(esp=<unique_id of an escalation policy>)
+````
+
 ## Schedules
+#### POST - Create an Escalation Policy
+````python
+class SDKSchedulesClient(SDKTeamsClient):
+    def __init__(self):
+        super().__init__()
+        self.uuid = self.generate_uuid()
+        self.teams_client = TeamsClient(client=self.client)
+        self.team_ids.append(self.create_team(self))
+        self.team_by_id = self.teams_client.find_team_by_id(
+            team_id="<unique_id of a team>"
+        )
+        self.schedules_client = self.teams_client.get_schedule_client(self.team_by_id)
+        self.schedules_name = f"Schedules - {self.datetime_timestamp}"
+        self.layers = [
+            {
+                "name": "Layer 1",
+                "is_active": True,
+                "restriction_type": 0,
+                "restrictions": [],
+                "rotation_start_time": "2025-07-29T03:30:00.000Z",
+                "rotation_end_time": None,
+                "shift_length": 86400,
+                "users": [
+                    {
+                        "user": "<unique_id of a user>",
+                        "position": 1,
+                    }
+                ],
+            }
+        ]
+
+        self.overrides = [
+            {
+                "name": "",
+                "user": "<unique_id of a user>",
+                "start_time": "2024-07-29T11:54:34.745000Z",
+                "end_time": "2024-07-29T18:29:59.999000Z",
+            }
+        ]
+
+    def create_schedule(self):
+        create_schedule = self.schedules_client.create_schedule(
+            name=self.schedules_name,
+            timezone="Asia/Kolkata",
+            layers=self.layers,
+            overrides=self.overrides,
+        )
+
+````
+#### GET - Get all Schedules
+````python
+get_all_schedules = self.schedules_client.get_all_schedules()
+````
+#### GET - Get Schedules by ID
+````python
+self.get_schedule_by_id = self.schedules_client.get_schedule_by_id(
+            schedule_id=<unique_id of a schedule>
+        )
+````
+#### POST - Update a Schedule
+````python
+update_schedule = self.schedules_client.update_schedule(
+            schedule=<unique_id of a schedule>,
+            name="Test Schedule Updated",
+        )
+````
+#### DEL - Delete a Schedule
+````python
+delete_schedule = self.schedules_client.delete_schedule(
+            schedule=<unique_id of a schedule>
+        )
+````
+
 ## Maintenance
 ## Incidents
 ## Postmortem
