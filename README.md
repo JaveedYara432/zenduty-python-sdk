@@ -113,7 +113,7 @@ class SDKAccountMembersClient(SDKTeamsClient):
 #### PATCH - Update Account Member
 ```python
 update_account_member = self.account_member_client.update_account_member(
-    account_member_username=<unique_id Of a member>,
+    account_member_username=<unique_id of a member>,
     first_name=test_first_name,
     last_name=f"Doe {random.randint(2,10000000000000000000000)}",
     role=2,
@@ -123,7 +123,7 @@ update_account_member = self.account_member_client.update_account_member(
 #### Get details about a particular team member
 ````python
 account_member = self.account_member_client.get_account_member(
-            account_member_id=<unique_id Of a member>
+            account_member_id=<unique_id of a member>
         )
 ````
 #### GET - Get all the members of a team
@@ -134,7 +134,7 @@ account_members = self.account_member_client.get_all_members()
 #### DEL - Delete an Account member
 #### Delete a particular member of the team.
 ````python
-delete_account_member = self.account_member_client.delete_account_member(account_member_id=<unique_id Of a member>)
+delete_account_member = self.account_member_client.delete_account_member(account_member_id=<unique_id of a member>)
 ````
 
 
