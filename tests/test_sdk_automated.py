@@ -26,12 +26,13 @@ from zenduty.apiV2.authentication.zenduty_credential import ZendutyCredential
 
 
 class SDKTestingClient:
-    def __init__(self):
-        self.cred = ZendutyCredential("e3464dbec1590e0c226685e156f40ed541c3b715")
-        self.client = ZendutyClient(
-            credential=self.cred, use_https=True
+    @classmethod
+    def setup_class(cls):
+        cls.cred = ZendutyCredential("e3464dbec1590e0c226685e156f40ed541c3b715")
+        cls.client = ZendutyClient(
+            credential=cls.cred, use_https=True
         )  # defaults to default service endpoint zenduty.com
-        self.datetime_timestamp = self.datetime_timestamp()
+        cls.datetime_timestamp = cls.datetime_timestamp()
 
     @staticmethod
     def datetime_timestamp():
@@ -45,15 +46,16 @@ class SDKTestingClient:
 
 @pytest.mark.teams
 class TestSDKTeamsClient(SDKTestingClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.team_members = []
-        self.team_member_unique_id = []
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_member_id = "773c69f5-78f2-42ca-b3d9-b"
-        self.invite_url = "https://zenduty.com/api/invite/accept/"
-        self.test_team_name = f"Team - {self.datetime_timestamp}"
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.team_members = []
+        cls.team_member_unique_id = []
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_member_id = "773c69f5-78f2-42ca-b3d9-b"
+        cls.invite_url = "https://zenduty.com/api/invite/accept/"
+        cls.test_team_name = f"Team - {cls.datetime_timestamp}"
 
     @staticmethod
     def create_team(self):
@@ -68,6 +70,7 @@ class TestSDKTeamsClient(SDKTestingClient):
     def test_create_team(self):
         # Team1 is the name of the team and that is the payload
         create_team = self.teams_client.create_team(self.test_team_name)
+        print("Here")
         self.team_ids.append(create_team)
         assert create_team.name == self.test_team_name
         time.sleep(2)
@@ -134,12 +137,13 @@ class TestSDKTeamsClient(SDKTestingClient):
 
 @pytest.mark.accountmembers
 class TestSDKAccountMembersClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.account_member_ids = []
-        self.teams_client = TeamsClient(client=self.client)
-        self.account_member_client = AccountMemberClient(client=self.client)
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.account_member_ids = []
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.account_member_client = AccountMemberClient(client=cls.client)
 
     def test_account_members_invite(self):
         create_team = self.teams_client.create_team(
@@ -188,10 +192,11 @@ class TestSDKAccountMembersClient(TestSDKTeamsClient):
 
 @pytest.mark.accountroles
 class TestSDKAccountRolesClient(SDKTestingClient):
-    def __init__(self):
-        super().__init__()
-        self.account_role_ids = []
-        self.account_role_client = AccountRoleClient(client=self.client)
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.account_role_ids = []
+        cls.account_role_client = AccountRoleClient(client=cls.client)
 
     def test_create_account_role(self):
         test_name = f"Account Role - {self.datetime_timestamp}"
@@ -239,11 +244,12 @@ class TestSDKAccountRolesClient(SDKTestingClient):
 
 @pytest.mark.GER
 class TestSDKGERClients(SDKTestingClient):
-    def __init__(self):
-        super().__init__()
-        self.router_ids = []
-        self.router_client = RouterClient(client=self.client)
-        self.router_name = f"Router - {self.datetime_timestamp}"
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.router_ids = []
+        cls.router_client = RouterClient(client=cls.client)
+        cls.router_name = f"Router - {cls.datetime_timestamp}"
 
     def test_create_router(self):
         create_router = self.router_client.create_router(
@@ -284,11 +290,12 @@ class TestSDKGERClients(SDKTestingClient):
 
 @pytest.mark.events
 class TestSDKEventsClient(SDKTestingClient):
-    def __init__(self):
-        super().__init__()
-        self.event_ids = []
-        self.event_client = EventClient(client=self.client)
-        self.event_name = f"Event - {self.datetime_timestamp}"
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.event_ids = []
+        cls.event_client = EventClient(client=cls.client)
+        cls.event_name = f"Event - {cls.datetime_timestamp}"
 
     def test_get_router_client(self):
         get_router = self.event_client.get_router_client()
@@ -322,22 +329,23 @@ class TestSDKEventsClient(SDKTestingClient):
 
 @pytest.mark.escalationpolicy
 class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.escalation_policy_ids = []
-        self.account_member_ids = []
-        self.team_ids = []
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.account_member_client = AccountMemberClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.escalation_policy_ids = []
+        cls.account_member_ids = []
+        cls.team_ids = []
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.account_member_client = AccountMemberClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.escalation_policy_client = self.teams_client.get_escalation_policy_client(
-            self.team_by_id
+        cls.escalation_policy_client = cls.teams_client.get_escalation_policy_client(
+            cls.team_by_id
         )
-        self.ep_name = f"EP - {self.datetime_timestamp}"
+        cls.ep_name = f"EP - {cls.datetime_timestamp}"
 
     @staticmethod
     def generate_uuid() -> str:
@@ -391,21 +399,20 @@ class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
 
 @pytest.mark.maintenance
 class TestSDKMaintenanceClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.maintenance_ids = []
-        self.account_member_ids = []
-        self.team_ids = []
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.maintenance_ids = []
+        cls.account_member_ids = []
+        cls.team_ids = []
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.maintenance_client = self.teams_client.get_maintenance_client(
-            self.team_by_id
-        )
-        self.maintenance_name = f"Maintenance Mode - {self.datetime_timestamp}"
+        cls.maintenance_client = cls.teams_client.get_maintenance_client(cls.team_by_id)
+        cls.maintenance_name = f"Maintenance Mode - {cls.datetime_timestamp}"
 
     def test_create_maintenance(self):
         create_maintenance = self.maintenance_client.create_team_maintenance(
@@ -452,16 +459,17 @@ class TestSDKMaintenanceClient(TestSDKTeamsClient):
 
 @pytest.mark.incidents
 class TestSDKIncidentsClient(SDKTestingClient):
-    def __init__(self):
-        super().__init__()
-        self.incident_ids = []
-        self.incident_number = []
-        self.incident_notes_list = []
-        self.incident_tags_list = []
-        self.incident_client = IncidentClient(client=self.client)
-        self.incident_name = f"Incident - {self.datetime_timestamp}"
-        self.incident_notes = f"Incident Notes - {self.datetime_timestamp}"
-        self.incident_tags = f"Incident Tags - {self.datetime_timestamp}"
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.incident_ids = []
+        cls.incident_number = []
+        cls.incident_notes_list = []
+        cls.incident_tags_list = []
+        cls.incident_client = IncidentClient(client=cls.client)
+        cls.incident_name = f"Incident - {cls.datetime_timestamp}"
+        cls.incident_notes = f"Incident Notes - {cls.datetime_timestamp}"
+        cls.incident_tags = f"Incident Tags - {cls.datetime_timestamp}"
 
     def test_create_incident(self):
         create_incident = self.incident_client.create_incident(
@@ -566,25 +574,24 @@ class TestSDKIncidentsClient(SDKTestingClient):
 
 @pytest.mark.postmortem
 class TestSDKPostMortemClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.incident_ids = []
-        self.postmortem_ids = []
-        self.account_member_ids = []
-        self.incident_name = "blahblah"
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.incident_ids = []
+        cls.postmortem_ids = []
+        cls.account_member_ids = []
+        cls.incident_name = "blahblah"
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.incident_client = IncidentClient(client=self.client)
-        self.incident_name = f"Incident - {self.datetime_timestamp}"
-        self.postmortem_client = self.teams_client.get_postmortem_client(
-            self.team_by_id
-        )
-        self.postmortem_name = f"Postmortem - {self.datetime_timestamp}"
+        cls.incident_client = IncidentClient(client=cls.client)
+        cls.incident_name = f"Incident - {cls.datetime_timestamp}"
+        cls.postmortem_client = cls.teams_client.get_postmortem_client(cls.team_by_id)
+        cls.postmortem_name = f"Postmortem - {cls.datetime_timestamp}"
 
     def test_create_postmortem(self):
         # Create the Incident
@@ -634,19 +641,20 @@ class TestSDKPostMortemClient(TestSDKTeamsClient):
 
 @pytest.mark.priorities
 class TestSDKPrioritiesClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.priority_ids = []
-        self.account_member_ids = []
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.priority_ids = []
+        cls.account_member_ids = []
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.priority_client = self.teams_client.get_priority_client(self.team_by_id)
-        self.priority_name = f"Priority - {self.datetime_timestamp}"
+        cls.priority_client = cls.teams_client.get_priority_client(cls.team_by_id)
+        cls.priority_name = f"Priority - {cls.datetime_timestamp}"
 
     def test_create_priority(self):
         create_priority = self.priority_client.create_priority(
@@ -687,19 +695,20 @@ class TestSDKPrioritiesClient(TestSDKTeamsClient):
 
 @pytest.mark.roles
 class TestSDKRolesClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.role_ids = []
-        self.account_member_ids = []
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.role_ids = []
+        cls.account_member_ids = []
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.role_client = self.teams_client.get_incident_role_client(self.team_by_id)
-        self.role_name = f"Role - {self.datetime_timestamp}"
+        cls.role_client = cls.teams_client.get_incident_role_client(cls.team_by_id)
+        cls.role_name = f"Role - {cls.datetime_timestamp}"
 
     def test_create_role(self):
         self.create_role = self.role_client.create_incident_role(
@@ -736,20 +745,21 @@ class TestSDKRolesClient(TestSDKTeamsClient):
 
 @pytest.mark.schedules
 class TestSDKSchedulesClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.schedules_ids = []
-        self.account_member_ids = []
-        self.uuid = self.generate_uuid()
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
-        self.team_by_id = self.teams_client.find_team_by_id(
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.schedules_ids = []
+        cls.account_member_ids = []
+        cls.uuid = cls.generate_uuid()
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.schedules_client = self.teams_client.get_schedule_client(self.team_by_id)
-        self.schedules_name = f"Schedules - {self.datetime_timestamp}"
-        self.layers = [
+        cls.schedules_client = cls.teams_client.get_schedule_client(cls.team_by_id)
+        cls.schedules_name = f"Schedules - {cls.datetime_timestamp}"
+        cls.layers = [
             {
                 "name": "Layer 1",
                 "is_active": True,
@@ -767,7 +777,7 @@ class TestSDKSchedulesClient(TestSDKTeamsClient):
             }
         ]
 
-        self.overrides = [
+        cls.overrides = [
             {
                 "name": "",
                 "user": "3544118d-fbf5-41e5-ae6c-5",
@@ -815,31 +825,32 @@ class TestSDKSchedulesClient(TestSDKTeamsClient):
 
 @pytest.mark.services
 class TestSDKServicesClient(TestSDKTeamsClient):
-    def __init__(self):
-        super().__init__()
-        self.team_ids = []
-        self.sla_ids = []
-        self.priority_ids = []
-        self.escalation_policy_ids = []
-        self.service_ids = []
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.team_ids = []
+        cls.sla_ids = []
+        cls.priority_ids = []
+        cls.escalation_policy_ids = []
+        cls.service_ids = []
         # Making the Teams Client
-        self.teams_client = TeamsClient(client=self.client)
-        self.team_ids.append(self.create_team(self))
+        cls.teams_client = TeamsClient(client=cls.client)
+        cls.team_ids.append(cls.create_team(cls))
         # Making the Service Client
-        self.service_client = self.teams_client.get_service_client(self.team_ids[0])
-        self.team_by_id = self.teams_client.find_team_by_id(
+        cls.service_client = cls.teams_client.get_service_client(cls.team_ids[0])
+        cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
-        self.escalation_policy_client = self.teams_client.get_escalation_policy_client(
-            self.team_by_id
+        cls.escalation_policy_client = cls.teams_client.get_escalation_policy_client(
+            cls.team_by_id
         )
-        self.priority_client = self.teams_client.get_priority_client(self.team_by_id)
-        self.sla_client = self.teams_client.get_sla_client(self.team_by_id)
+        cls.priority_client = cls.teams_client.get_priority_client(cls.team_by_id)
+        cls.sla_client = cls.teams_client.get_sla_client(cls.team_by_id)
         # Making the names
-        self.ep_name = f"EP - {self.datetime_timestamp}"
-        self.priority_name = f"Priority - {self.datetime_timestamp}"
-        self.sla_name = f"SLA - {self.datetime_timestamp}"
-        self.service_name = f"Service - {self.datetime_timestamp}"
+        cls.ep_name = f"EP - {cls.datetime_timestamp}"
+        cls.priority_name = f"Priority - {cls.datetime_timestamp}"
+        cls.sla_name = f"SLA - {cls.datetime_timestamp}"
+        cls.service_name = f"Service - {cls.datetime_timestamp}"
 
     def test_create_service(self):
         # Create the escalation policy
@@ -890,11 +901,12 @@ class TestSDKServicesClient(TestSDKTeamsClient):
 
 @pytest.mark.integrations
 class TestSDKIntegrationClient(TestSDKServicesClient):
-    def __init__(self):
-        super().__init__()
-        self.service_ids = []
-        integration_client = self.service_client.get_integration_client(
-            svc=self.service_ids[0]
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.service_ids = []
+        integration_client = cls.service_client.get_integration_client(
+            svc=cls.service_ids[0]
         )
 
 
@@ -917,18 +929,18 @@ if __name__ == "__main__":
     # escalations_client = TestSDKEscalationPolicyClient()
     # escalations_client.test_create_escalation_policy()
 
-    # teams_client = TestSDKTeamsClient()
-    # teams_client.test_create_team()
-    # teams_client.test_find_team_by_id()
-    # teams_client.test_list_team_member()
-    # teams_client.test_add_team_member()
-    # teams_client.test_find_team_member()
-    # teams_client.test_update_team_member()
-    # teams_client.test_delete_team_member()
-    # teams_client.test_fetch_team_permissions()
-    # teams_client.update_team_permissions()
-    # teams_client.test_update_teams()
-    # teams_client.test_delete_teams()
+    teams_client = TestSDKTeamsClient()
+    teams_client.test_create_team()
+    teams_client.test_find_team_by_id()
+    teams_client.test_list_team_member()
+    teams_client.test_add_team_member()
+    teams_client.test_find_team_member()
+    teams_client.test_update_team_member()
+    teams_client.test_delete_team_member()
+    teams_client.test_fetch_team_permissions()
+    teams_client.update_team_permissions()
+    teams_client.test_update_teams()
+    teams_client.test_delete_teams()
 
     # router_client = TestSDKGERClients()
     # router_client.test_create_router()
@@ -1015,7 +1027,5 @@ if __name__ == "__main__":
     # schedules_client.test_update_schedule()
     # schedules_client.test_delete_schedule()
 
-    services_client = TestSDKServicesClient()
-    services_client.test_create_service()
-
-    pass
+    # services_client = TestSDKServicesClient()
+    # services_client.test_create_service()
