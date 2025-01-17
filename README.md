@@ -18,7 +18,6 @@ or you may grab the latest source code from GitHub:
 
 ```sh
 $ git clone https://github.com/Zenduty/zenduty-python-sdk
-$ python3 setup.py install
 ```
 
 ## Contents
