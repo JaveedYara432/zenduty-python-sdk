@@ -1,4 +1,5 @@
 # What is Zenduty??
+
 Zenduty is a cutting edge platform for incident management. With high level automation, Zenduty enables faster and better incident resolution keeping developers first.
 
 # Zenduty Python SDK
@@ -8,30 +9,32 @@ Python SDK to communicate with zenduty endpoints
 ## Installing
 
 Installation can be done through pip, as follows:
-```sh 
+
+```sh
 $ pip install zenduty-api
 ```
-or you may grab the latest source code from GitHub: 
+
+or you may grab the latest source code from GitHub:
+
 ```sh
 $ git clone https://github.com/Zenduty/zenduty-python-sdk
 $ python3 setup.py install
 ```
 
 ## Contents
-1) zenduty/api : contains the functions to communicate with zenduty API endpoints
-2) zenduty/    : contains the common required files
-3) bin/		   : contains sample script to run zenduty functions
+
+1. zenduty/api : contains the functions to communicate with zenduty API endpoints
+2. zenduty/ : contains the common required files
+3. bin/ : contains sample script to run zenduty functions
 
 ## Getting started
 
 Before you begin making use of the SDK, make sure you have your Zenduty Access Token.
 You can then import the package into your python script.
 
-First of all, start off by making a client which connects to Zenduty using API Token. And create a team, most of the operations we'd do start off by creating a team, and creating services. For now, we will start off with creating an instance of a team. 
-
+First of all, start off by making a client which connects to Zenduty using API Token. And create a team, most of the operations we'd do start off by creating a team, and creating services. For now, we will start off with creating an instance of a team.
 
 The Approach here is to make clients here, every module will get a new client to make things simpler and easier for us to understand.
-
 
 ```python
 import zenduty
@@ -46,52 +49,64 @@ class SDKTestingClient:
 
 It is important to note that each function returns a urllib3.response.HTTPResponse object.
 
-
 ## Teams
+
 This object represents a team of the account. It lets you create different independent operational units in the account. You can check out the team docs here https://docs.zenduty.com/docs/teams.
 
-A Team can have multiple Members, Services, Integrations, Schedules, Escalation Policies, Priorities, Maintenance, etc.. 
-
+A Team can have multiple Members, Services, Integrations, Schedules, Escalation Policies, Priorities, Maintenance, etc..
 
 #### POST - Create a new team
-````python
+
+```python
 class SDKTeamsClient(SDKTestingClient):
     def __init__(self):
         super().__init__()
         self.teams_client = TeamsClient(client=self.client)
-        self.team_member_id = <unique_id of a team_member> # Random member id. 
+        self.team_member_id = <unique_id of a team_member> # Random member id.
         self.invite_url = "https://zenduty.com/api/invite/accept/"
         self.test_team_name = f"Team - {self.datetime_timestamp}"
 
     def create_team(self):
         create_team = self.teams_client.create_team(self.test_team_name)
         return create_team
-````
+```
+
+From here on, use this team object returned by create_team() to get the unique id of that team by calling it like this.
+
 #### GET - List Teams
+
 #### Will fetch all the teams present in that account
-````python
+
+```python
 list_teams = self.teams_client.list_teams()
-````
+```
+
 #### PATCH - Update teams
-#### Update the team 
-````python
+
+#### Update the team
+
+```python
 update_teams = self.teams_client.update_team(
-            <unique_id of a team>, name="Updated Team Name"
+            <Team Object>, name="Updated Team Name"
         )
-````
+```
+
 #### DEL - Delete team
-````python
-delete_teams = self.teams_client.delete_team(<unique_id of a team>)
-````
 
+```python
+delete_teams = self.teams_client.delete_team(<Team Object>)
+```
 
-## Account Member 
+## Account Member
+
 This object represents an account user. Each account member object has a role, which can be "owner," "admin," or "user." An account can have only one owner, but multiple admins and users.
 
 Prerequisite: A team must be created, where the role of each member can be assigned.
 
 #### GET - Invite a member to the team
+
 #### Invite a member to the team.
+
 ```python
 class SDKAccountMembersClient(SDKTeamsClient):
     def __init__(self):
@@ -101,7 +116,7 @@ class SDKAccountMembersClient(SDKTeamsClient):
 
     def account_members_invite(self):
         test_email = f"john.doe.{random.randint(2,10000000000000000000000)}@zenduty.com"
-        
+
         account_member_invite = self.account_member_client.invite(
             team_id = <unique_id of a team>, # UUID, which is unique_id of the team
             first_name="John",
@@ -110,40 +125,51 @@ class SDKAccountMembersClient(SDKTeamsClient):
             email=test_email,
         )
 ```
+
 #### PATCH - Update Account Member
+
 ```python
 update_account_member = self.account_member_client.update_account_member(
-    account_member_username=<unique_id of a member>,
+    account_member_username=<Account Member object>,
     first_name=test_first_name,
     last_name=f"Doe {random.randint(2,10000000000000000000000)}",
     role=2,
 )
 ```
+
 #### GET - Get Account member
+
 #### Get details about a particular team member
-````python
+
+```python
 account_member = self.account_member_client.get_account_member(
             account_member_id=<unique_id of a member>
         )
-````
-#### GET - Get all the members of a team
-#### Get details of all the members of the team.
-````python
-account_members = self.account_member_client.get_all_members()
-````
-#### DEL - Delete an Account member
-#### Delete a particular member of the team.
-````python
-delete_account_member = self.account_member_client.delete_account_member(account_member_id=<unique_id of a member>)
-````
+```
 
+#### GET - Get all the members of a team
+
+#### Get details of all the members of the team.
+
+```python
+account_members = self.account_member_client.get_all_members()
+```
+
+#### DEL - Delete an Account member
+
+#### Delete a particular member of the team.
+
+```python
+delete_account_member = self.account_member_client.delete_account_member(account_member_id=<Account Member object>)
+```
 
 ## Account Roles
 
 #### POST - Create Account Role
+
 #### There are a list of permissions you could give to a role. Please refer to these docs, https://apidocs.zenduty.com/#tag/Account-Custom-Role.
 
-````python
+```python
 class SDKAccountRolesClient(SDKTestingClient):
     def __init__(self):
         super().__init__()
@@ -156,19 +182,25 @@ class SDKAccountRolesClient(SDKTestingClient):
             description="Account Role Description",
             permissions=["sla_read"],
         )
-````
-#### GET - Get an Account Role 
-````python
+```
+
+#### GET - Get an Account Role
+
+```python
 get_account_role = self.account_role_client.get_account_role(
             account_role_id=<unique_id of the account_role>
         )
-````
+```
+
 #### GET - Get a list of roles
-````python
+
+```python
 list_account_roles = self.account_role_client.list_account_roles()
-````
+```
+
 #### PATCH - Update an Account Role
-````python
+
+```python
 test_name = f"Updated Account Role - {self.datetime_timestamp}"
         update_account_role = self.account_role_client.update_account_role(
             account_role_id=<unique_id of the account_role>,
@@ -176,13 +208,15 @@ test_name = f"Updated Account Role - {self.datetime_timestamp}"
             description="Updated Account Role Description",
             permissions=["sla_read"],
         )
-````
+```
+
 #### DEL - Delete an Account Role
-````python
+
+```python
 delete_account_role = self.account_role_client.delete_account_role(
             account_role_id=<unique_id of the account_role>
         )
-````
+```
 
 ## Global Event Router
 
@@ -191,7 +225,8 @@ Global Event Router is a webhook, when sent requests to it, would navigate it to
 Refer to this, for more information, https://apidocs.zenduty.com/#tag/Global-Router.
 
 #### POST - Create Router
-````python
+
+```python
 class SDKGERClients(SDKTestingClient):
     def __init__(self):
         super().__init__()
@@ -203,33 +238,43 @@ class SDKGERClients(SDKTestingClient):
             name=self.router_name,
             description="Router Description",
         )
-````
+```
+
 #### GET - List Routers
-````python
+
+```python
 list_router = self.router_client.get_all_routers()
-````
+```
+
 #### GET - Get Router by ID
-````python
+
+```python
 find_router = self.router_client.get_router_by_id(router_id=<unique_id of a router>)
-````
+```
+
 #### PATCH - Update a particular Router
-````python
+
+```python
 update_router = self.router_client.update_router(
     <unique_id of a router>,
     name="Updated Router Name",
     description="Updated Router Description",
 )
-````
+```
+
 #### DEL - Delete a particular Router
-````python
+
+```python
 delete_router = self.router_client.delete_router(<unique_id of a router>)
-````
+```
 
 ## Events
+
 This object represents the events of an integration.
 
 #### POST - Create an Event
-````python
+
+```python
 class SDKEventsClient(SDKTestingClient):
     def __init__(self):
         super().__init__()
@@ -259,13 +304,15 @@ class SDKEventsClient(SDKTestingClient):
             ],
         )
 
-````
+```
 
 ## Escalation Policy
+
 Escalation policies dictate how an incident created within a service escalates within your team.
 
 #### POST - Create an Escalation Policy
-````python
+
+```python
 class SDKEscalationPolicyClient(SDKTeamsClient):
     # Inheriting a few methods from the Teams Object.
     def __init__(self):
@@ -297,33 +344,43 @@ class SDKEscalationPolicyClient(SDKTeamsClient):
             self.ep_name, rules=self.rule_build
         )
 
-````
+```
+
 #### GET - Get Escalation Policies by ID
-````python
+
+```python
 self.escalation_policy_client.get_esp_by_id(
     esp_id=<unique_id of an escalation policy>
 )
-````
+```
+
 #### POST - Update Escalation Policy
-````python
+
+```python
 update_esp = self.escalation_policy_client.update_esp(
             esp=<unique_id of an escalation policy>,
             name="Test Updated",
             rules=self.rule_build,
         )
-````
+```
+
 #### GET - Get all the escalation policies
-````python
+
+```python
 all_esp = self.escalation_policy_client.get_all_policies()
-````
+```
+
 #### DEL - Delete an Escalation Policy
-````python
+
+```python
 delete_esp = self.escalation_policy_client.delete_esp(esp=<unique_id of an escalation policy>)
-````
+```
 
 ## Schedules
+
 #### POST - Create an Escalation Policy
-````python
+
+```python
 class SDKSchedulesClient(SDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -370,35 +427,44 @@ class SDKSchedulesClient(SDKTeamsClient):
             overrides=self.overrides,
         )
 
-````
+```
+
 #### GET - Get all Schedules
-````python
+
+```python
 get_all_schedules = self.schedules_client.get_all_schedules()
-````
+```
+
 #### GET - Get Schedules by ID
-````python
+
+```python
 self.get_schedule_by_id = self.schedules_client.get_schedule_by_id(
             schedule_id=<unique_id of a schedule>
         )
-````
+```
+
 #### POST - Update a Schedule
-````python
+
+```python
 update_schedule = self.schedules_client.update_schedule(
             schedule=<unique_id of a schedule>,
             name="Test Schedule Updated",
         )
-````
+```
+
 #### DEL - Delete a Schedule
-````python
+
+```python
 delete_schedule = self.schedules_client.delete_schedule(
             schedule=<unique_id of a schedule>
         )
-````
+```
 
 ## Maintenance
 
 #### POST - Create a Maintenance
-````python
+
+```python
 class SDKMaintenanceClient(SDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -420,15 +486,19 @@ class SDKMaintenanceClient(SDKTeamsClient):
             end_time="2026-07-08T18:06:00",
             service_ids=[list<unique_id of services>],
         )
-````
+```
+
 #### GET - Get all Maintenances
-````python
+
+```python
 get_maintenance_by_id = self.maintenance_client.get_maintenance_by_id(
             maintenance_id=<unique_id of a maintenance>
         )
-````
+```
+
 #### PATCH - Update a Maintenance
-````python
+
+```python
 update_maintenance = self.maintenance_client.update_maintenance(
             maintenance_id=<unique_id of a maintenance>,
             name="Updated Maintenance Name",
@@ -436,15 +506,18 @@ update_maintenance = self.maintenance_client.update_maintenance(
             end_time="2026-07-08T18:06:00",
             service_ids=[list<unique_id of services>],
         )
-````
+```
+
 #### DEL - Delete a Maintenance
-````python
+
+```python
 delete_maintenance = self.maintenance_client.delete_maintenance(
             maintenance_id=unique_id of a maintenance>
         )
-````
+```
 
 ## Incidents
+
 What is an Incident??
 
 An incident on Zenduty is an event that is not part of usual operations, and that disrupts operational processes within a Service that is owned by a team. Incidents can be automatically created by an alert integration within the service or manually by a user.
@@ -456,7 +529,8 @@ Acknowledged: When an incident is acknowledged by a user, Zenduty stops all furt
 Resolved: Marking an incident as resolved implies that the incident has been remediated. Incidents can be resolved automatically by the service integration that created it, or manually by a user.
 
 #### POST - Create an Incident
-````python
+
+```python
 class SDKIncidentsClient(SDKTestingClient):
     def __init__(self):
         super().__init__()
@@ -470,9 +544,11 @@ class SDKIncidentsClient(SDKTestingClient):
             title=self.incident_name, service=<unique_id of a service>
         )
 
-````
+```
+
 #### POST - Create an Incident Note
-````python
+
+```python
     self.note_client = self.incident_client.get_note_client(
         incident_id=<unique_id of a incident>
     )
@@ -481,65 +557,85 @@ class SDKIncidentsClient(SDKTestingClient):
     create_incident_note = self.note_client.create_incident_note(
         note=self.incident_notes
     )
-````
+```
+
 #### GET - Get all Incident Notes
-````python
+
+```python
 get_all_incident_notes = self.note_client.get_all_incident_notes()
-````
+```
+
 #### GET - Get Incident note by id
-````python
+
+```python
  get_incident_note_by_id = self.note_client.get_incident_note_by_id(
             incident_note_unique_id=<unique_id of a incident note>
         )
-````
+```
+
 #### PATCH - Update an Incident note
-````python
+
+```python
 update_incident_note = self.note_client.update_incident_note(
             incident_note_unique_id=<unique_id of a incident note>,
             note="Updated Incident Note",
         )
-````
+```
+
 #### DEL - Delete an Incident note
-````python
+
+```python
  delete_incident_note = self.note_client.delete_incident_note(
             incident_note_unique_id=<unique_id of a incident note>
         )
-````
+```
+
 #### POST - Create an Incident Tag
-````python
+
+```python
         self.tag_client = self.incident_client.get_tags_client(<incident_number of an incident>)
 
         create_incident_tag = self.tag_client.create_tag(
             team_tag=<incident_number of an incident>
         )
-````
+```
+
 #### GET - Get all Incident Tags
-````python
+
+```python
 get_all_tags = self.tag_client.get_all_tags()
-```` 
+```
+
 #### GET - Get all Incidents
-````python
+
+```python
 get_all_incidents = self.incident_client.get_all_incidents(page=1)
-````
+```
+
 #### GET - Get Alerts of Incidents
-````python
+
+```python
 get_alerts_by_incident = self.incident_client.get_alerts_for_incident(
             incident_number<sincident_number of an incident>
         )
-````
+```
+
 #### PATCH - Update an Incident
-````python
+
+```python
 update_incident = self.incident_client.update_incident(
             incident_id=<unique_id of an incident>,
             title="Updated Incident Name",
             status=3,
             service="a91a3a00-8de9-472c-ad2e-61e7c89db062",
         )
-````
+```
 
 ## Postmortem
+
 #### POST - Create a Postmortem
-````python
+
+```python
 class SDKPostMortemClient(TestSDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -570,32 +666,40 @@ class SDKPostMortemClient(TestSDKTeamsClient):
             title="Test Postmortem",
         )
 
-````
+```
+
 #### GET - Get postmortem by id
-````python
+
+```python
 self.postmortem_by_id = self.postmortem_client.get_postmortem_by_id(
             postmortem_id=<unique_id of a postmortem>
         )
-```` 
+```
+
 #### PATCH - Update a postmortem
-````python
+
+```python
 pdate_postmortem = self.postmortem_client.update_postmortem(
             <unique_id of a postmortem>,
             author=<unique_id of the user who made the postmortem>,
             incidents=[list<unique_id of a service>],
             title="Test Postmortem Updated",
         )
-````
+```
+
 #### DEL - Delete a postmortem
-````python
+
+```python
 delete_postmortem = self.postmortem_client.delete_postmortem(
             <unique_id of a postmortem>
         )
-````
+```
 
 ## Priorities
+
 #### POST - Create a priority
-````python
+
+```python
 class SDKPrioritiesClient(SDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -615,33 +719,43 @@ class SDKPrioritiesClient(SDKTeamsClient):
             color="red",
         )
 
-````
+```
+
 #### GET - Get all priorities
-````python
+
+```python
 get_all_priorities = self.priority_client.get_all_priorities()
-````
+```
+
 #### GET - Get priorities by ID
-````python
+
+```python
 self.priority_by_id = self.priority_client.get_priority_by_id(
             priority_id=<unique_id of a priority>
         )
-````
+```
+
 #### PATCH - Update the priority
-````python
+
+```python
 update_priority = self.priority_client.update_priority(
             <unique_id of a priority>,
             name="Test Priority Updated",
             description="Test Priority",
         )
-````
+```
+
 #### DEL - Delete a priority
-````python
+
+```python
 delete_priority = self.priority_client.delete_priority(<unique_id of a priority>)
-```` 
+```
 
 ## Roles
+
 #### POST - Create a Role
-````python
+
+```python
 class SDKRolesClient(SDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -660,30 +774,38 @@ class SDKRolesClient(SDKTeamsClient):
             description="Test Role",
             rank=1,
         )
-````
+```
+
 #### GET - Get incident role by id
-````python
+
+```python
  self.get_role_by_id = self.role_client.get_incident_role_by_id(
             role_id=<unique_id of an incident role>
         )
-````
+```
+
 #### PATCH - Update an incident role
-````python
+
+```python
 self.update_role = self.role_client.update_incident_role(
             role=<unique_id of an incident role>,
             title="Test Role Updated",
         )
-```` 
+```
+
 #### DEL - Delete an incident role
-````python
+
+```python
 self.delete_role = self.role_client.delete_incident_role(
             role=<unique_id of an incident role>
         )
-````
+```
 
 ## Services
+
 #### POST - Create a Service
-````python
+
+```python
 class SDKServicesClient(SDKTeamsClient):
     def __init__(self):
         super().__init__()
@@ -739,106 +861,141 @@ class SDKServicesClient(SDKTeamsClient):
             team_priority=<unique_id of a team priority>,
             sla=<unique_id of an SLA>,
         )
-````
+```
 
 ## Integrations
+
 #### POST - Create an integration
-````python
+
+```python
 integration_client = service_client.get_integration_client(svc=<unique_id of a service>)
 
 create_integration = integration_client.create_intg( name="Test Integration", summary="Test Integration", application=<unique_id of an application>)
 
-````
+```
+
 #### GET - Get all integrations
-````python
+
+```python
 all_integrations = integration_client.get_all_integrations()
-````
+```
+
 #### GET - Get integration by id
-````python
+
+```python
 integration_by_id = integration_client.get_intg_by_id(intg=<unique_id of an integration>)
-````
+```
+
 #### PATCH - Update an integration
-````python
+
+```python
 update_integration = integration_client.update_intg(intg=<unique_id of an integration>, name="Test Integration Updated", application=<unique_id of an application>)
-````
+```
+
 #### DEL - Delete an integration
-````python
+
+```python
 delete_integration = integration_client.delete_intg(intg=<unique_id of an integration>)
-````
+```
 
 ## SLA
+
 #### POST - Create an SLA
-````python
+
+```python
 sla_client = team_client.get_sla_client(team_by_id)
 create_sla = sla_client.create_sla(name="Test SLA", escalations=[])
-````
+```
+
 #### GET - Get SLA by id
-````python
+
+```python
 sla_by_id = sla_client.get_sla_by_id(sla_id=<unique_id of SLA>)
-````
+```
+
 #### PATCH - Update SLA
-````python
+
+```python
 update_sla = sla_client.update_sla(sla=<unique_id of SLA>, name="Test SLA Updated", escalations=[])
-````
+```
+
 #### DEL - Delete SLA
-````python
+
+```python
 delete_sla sla_client.delete_sla(sla=<unique_id of SLA>)
-````
+```
 
 ## Tags
+
 #### POST - Create a tag
-````python
+
+```python
 tag_client = team_client.get_tag_client(team_by_id)
 create_tag = tag_client.create_tag(name="TestXsadasd", color="red")
-````
-#### GET - Get all tags
-````python
-get_all_tags = tag_client.get_all_tags()
-````
-#### GET - GET tag by id
-````python
-get_tag = tag_client.get_tag_by_id(tags_id = <unique_id of a tag>)
-````
-#### PATCH - Update tag by id
-````python
-update_tag = tag_client(tag = <unique_id of a tag>, name="updated name", color="green")
-````
-#### DEL - Delete tag
-````python
-delete_tag = tag_client(tag = <unique_id of a tag>)
-````
+```
 
+#### GET - Get all tags
+
+```python
+get_all_tags = tag_client.get_all_tags()
+```
+
+#### GET - GET tag by id
+
+```python
+get_tag = tag_client.get_tag_by_id(tags_id = <unique_id of a tag>)
+```
+
+#### PATCH - Update tag by id
+
+```python
+update_tag = tag_client(tag = <unique_id of a tag>, name="updated name", color="green")
+```
+
+#### DEL - Delete tag
+
+```python
+delete_tag = tag_client(tag = <unique_id of a tag>)
+```
 
 ## Task templates
+
 #### POST - Create a task template
-````python
+
+```python
 task_template_client = team_client.get_task_template_client(team_by_id)
 create_task_template = task_template_client.create_task_template(
     name="Test Task Template", summary="Test Task Template"
 )
-````
+```
+
 #### GET - Get all task templates
-````python
+
+```python
 get_all_task_templates = task_template_client.get_all_task_template()
-```` 
+```
+
 #### GET - Get task templates by id
-````python
+
+```python
 get_task_template_by_id =  task_template_client.get_task_template_by_id(
     task_template_id=<unique_id of a task template>
 )
-````
+```
+
 #### PATCH - Update the task template
-````python
+
+```python
 update_task_template = task_template_client.update_task_template(
     task_template = <unique_id of a task template>, name="Test Task Template Updated"
 )
-````
+```
+
 #### DEL - Delete the task template
-````python
+
+```python
 delete_task_template = task_template_client.delete_task_template(task_template = <unique_id of a task template>)
-````
-
-
+```
 
 # Running tests
 

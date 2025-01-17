@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="zenduty-api",
-    version="2.6",
+    version="1.0",
     description="Python SDK wrapper for the Zenduty API",
     long_description="Python SDK wrapper for the Zenduty API",
     long_description_content_type="text/x-rst",
@@ -16,6 +16,7 @@ setup(
         "charset-normalizer==3.3.2",
         "idna==3.7",
         "certifi==2024.7.4",
+        "regex==2024.11.6",
     ],
     url="https://github.com/Zenduty/zenduty-python-sdk",
     license="MIT",
