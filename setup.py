@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="zenduty-api",
-    version="1.0",
+    version="1.0.0",
     description="Python SDK wrapper for the Zenduty API",
     long_description="""
         # Zenduty Python SDK
@@ -72,6 +72,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",  # Specify Python versions supported
     ],
-    python_requires=">=3.6",  # Specify the minimum Python version
+    python_requires=">=3.9",  # Specify the minimum Python version
     scripts=["bin/client.py"],  # Include any scripts you want to make executable
 )
