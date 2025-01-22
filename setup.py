@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="zenduty-api-test",
-    version="1.0.1",
+    name="zenduty-api",
+    version="1.0.0",
     description="Python SDK wrapper for the Zenduty API",
     long_description="""
         # Zenduty Python SDK

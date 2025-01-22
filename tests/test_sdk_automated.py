@@ -70,7 +70,6 @@ class TestSDKTeamsClient(SDKTestingClient):
     def test_create_team(self):
         # Team1 is the name of the team and that is the payload
         create_team = self.teams_client.create_team(self.test_team_name)
-        print("Here")
         self.team_ids.append(create_team)
         assert create_team.name == self.test_team_name
         time.sleep(2)
@@ -79,6 +78,14 @@ class TestSDKTeamsClient(SDKTestingClient):
         find_team = self.teams_client.find_team_by_id(self.team_ids[0].unique_id)
         assert find_team.unique_id == self.team_ids[0].unique_id
         time.sleep(2)
+
+    def test_update_teams(self):
+        update_teams = self.teams_client.update_team(
+            self.team_ids[0], name=f"Updated Team Name - {self.datetime_timestamp}"
+        )
+        assert (
+            str(update_teams.name) == f"Updated Team Name - {self.datetime_timestamp}"
+        )
 
     def test_list_team_member(self):
         list_team_members = self.teams_client.list_team_members(self.team_ids[0])
@@ -125,12 +132,6 @@ class TestSDKTeamsClient(SDKTestingClient):
         )
         assert "service_read" in updated_team_permissions
 
-    def test_update_teams(self):
-        update_teams = self.teams_client.update_team(
-            self.team_ids[0], name="Updated Team Name"
-        )
-        assert str(update_teams.name) == "Updated Team Name"
-
     def test_delete_teams(self):
         delete_teams = self.teams_client.delete_team(self.team_ids[0])
 
@@ -140,7 +141,8 @@ class TestSDKAccountMembersClient(TestSDKTeamsClient):
     @classmethod
     def setup_class(cls):
         super().setup_class()
-        cls.team_ids = []
+        cls.account_member_obj = []
+        cls.account_member_team_ids = []
         cls.account_member_ids = []
         cls.teams_client = TeamsClient(client=cls.client)
         cls.account_member_client = AccountMemberClient(client=cls.client)
@@ -149,17 +151,18 @@ class TestSDKAccountMembersClient(TestSDKTeamsClient):
         create_team = self.teams_client.create_team(
             name="Random Testing Team" + self.datetime_timestamp
         )
-        self.team_ids.append(create_team.unique_id)
+        self.account_member_team_ids.append(create_team.unique_id)
 
         test_email = f"john.doe.{random.randint(2,10000000000000000000000)}@zenduty.com"
 
         account_member_invite = self.account_member_client.invite(
-            team_id=self.team_ids[0],
+            team_id=self.account_member_team_ids[0],
             first_name="John",
             last_name="doe",
             role=3,
             email=test_email,
         )
+        self.account_member_obj.append(account_member_invite)
         self.account_member_ids.append(account_member_invite.user.username)
         assert account_member_invite.user.email == test_email
 
@@ -167,7 +170,7 @@ class TestSDKAccountMembersClient(TestSDKTeamsClient):
         test_first_name = f"Jane {random.randint(2,10000000000000000000000)}"
         # updated the email
         update_account_member = self.account_member_client.update_account_member(
-            account_member_username=self.account_member_ids[0],
+            account_member=self.account_member_obj[0],
             first_name=test_first_name,
             last_name=f"Doe {random.randint(2,10000000000000000000000)}",
             role=2,
@@ -186,7 +189,7 @@ class TestSDKAccountMembersClient(TestSDKTeamsClient):
 
     def test_delete_account_member(self):
         delete_account_member = self.account_member_client.delete_account_member(
-            account_member_id=self.account_member_ids[0]
+            account_member=self.account_member_obj[0]
         )
 
 
@@ -195,6 +198,7 @@ class TestSDKAccountRolesClient(SDKTestingClient):
     @classmethod
     def setup_class(cls):
         super().setup_class()
+        cls.account_role_obj = []
         cls.account_role_ids = []
         cls.account_role_client = AccountRoleClient(client=cls.client)
 
@@ -206,6 +210,7 @@ class TestSDKAccountRolesClient(SDKTestingClient):
             permissions=["sla_read"],
         )
 
+        self.account_role_obj.append(create_account_role)
         self.account_role_ids.append(create_account_role.unique_id)
 
         assert create_account_role.name == test_name
@@ -227,17 +232,18 @@ class TestSDKAccountRolesClient(SDKTestingClient):
     def test_update_account_role(self):
         test_name = f"Updated Account Role - {self.datetime_timestamp}"
         update_account_role = self.account_role_client.update_account_role(
-            account_role_id=self.account_role_ids[0],
+            account_role=self.account_role_obj[0],
             name=test_name,
             description="Updated Account Role Description",
             permissions=["sla_read"],
         )
+
         assert update_account_role.name == test_name
         time.sleep(2)
 
     def test_delete_account_role(self):
         delete_account_role = self.account_role_client.delete_account_role(
-            account_role_id=self.account_role_ids[0]
+            account_role=self.account_role_obj[0]
         )
         time.sleep(2)
 
@@ -248,6 +254,7 @@ class TestSDKGERClients(SDKTestingClient):
     def setup_class(cls):
         super().setup_class()
         cls.router_ids = []
+        cls.router_obj = []
         cls.router_client = RouterClient(client=cls.client)
         cls.router_name = f"Router - {cls.datetime_timestamp}"
 
@@ -257,6 +264,7 @@ class TestSDKGERClients(SDKTestingClient):
             description="Router Description",
         )
         self.router_ids.append(create_router.unique_id)
+        self.router_obj.append(create_router)
         assert str(create_router.name) == f"Router - {self.datetime_timestamp}"
         time.sleep(2)
 
@@ -268,14 +276,17 @@ class TestSDKGERClients(SDKTestingClient):
                 break
         time.sleep(2)
 
+    def get_all_routers(self):
+        return self.router_client.get_all_routers()
+
     def test_get_router_by_id(self):
-        find_router = self.router_client.get_router_by_id(router_id=self.router_ids[0])
+        find_router = self.router_client.get_router_by_id(self.router_obj[0].unique_id)
         assert str(find_router.unique_id) == str(self.router_ids[0])
         time.sleep(2)
 
     def test_update_router(self):
         update_router = self.router_client.update_router(
-            self.router_ids[0],
+            router=self.router_obj[0],
             name="Updated Router Name",
             description="Updated Router Description",
         )
@@ -284,7 +295,7 @@ class TestSDKGERClients(SDKTestingClient):
         time.sleep(2)
 
     def test_delete_router(self):
-        delete_router = self.router_client.delete_router(self.router_ids[0])
+        delete_router = self.router_client.delete_router(self.router_obj[0])
         time.sleep(2)
 
 
@@ -301,7 +312,6 @@ class TestSDKEventsClient(SDKTestingClient):
         get_router = self.event_client.get_router_client()
 
     def test_create_event(self):
-
         create_event = self.event_client.create_event(
             integration_key="f86e6ade-f987-4cfc-b047-9ce9ca794b41",
             alert_type="info",
@@ -335,10 +345,12 @@ class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
         cls.escalation_policy_ids = []
         cls.account_member_ids = []
         cls.team_ids = []
+        cls.create_escalation_policy_obj = []
         cls.uuid = cls.generate_uuid()
         cls.teams_client = TeamsClient(client=cls.client)
         cls.account_member_client = AccountMemberClient(client=cls.client)
         cls.team_ids.append(cls.create_team(cls))
+        # create teams fails because of this.
         cls.team_by_id = cls.teams_client.find_team_by_id(
             team_id="999a17ed-c7c3-4860-9024-d11c18fa5fa4"
         )
@@ -368,6 +380,7 @@ class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
 
         # Appending the unique_id to the escalation_policy_ids list
         self.escalation_policy_ids.append(create_escalation_policy.unique_id)
+        self.create_escalation_policy_obj.append(create_escalation_policy)
         assert create_escalation_policy.name == self.ep_name
         time.sleep(2)
 
@@ -379,13 +392,22 @@ class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
         time.sleep(2)
 
     def test_update_esp(self):
+        self.rule_build = [
+            {
+                "delay": 0,
+                "targets": [
+                    {"target_type": 2, "target_id": "3544118d-fbf5-41e5-ae6c-5"}
+                ],
+                "position": 1,
+            }
+        ]
         update_esp = self.escalation_policy_client.update_esp(
-            esp=self.get_esp_by_id,
-            name="Test Updated",
+            esp=self.create_escalation_policy_obj[0],
+            name=f"Test Updated - {self.datetime_timestamp}",
             rules=self.rule_build,
         )
 
-        assert update_esp.name == "Test Updated"
+        assert update_esp.name == f"Test Updated - {self.datetime_timestamp}"
         time.sleep(2)
 
     def test_get_all_policies(self):
@@ -393,7 +415,9 @@ class TestSDKEscalationPolicyClient(TestSDKTeamsClient):
         time.sleep(2)
 
     def test_delete_esp(self):
-        delete_esp = self.escalation_policy_client.delete_esp(esp=self.get_esp_by_id)
+        delete_esp = self.escalation_policy_client.delete_esp(
+            esp=self.create_escalation_policy_obj[0]
+        )
         time.sleep(2)
 
 
@@ -405,6 +429,7 @@ class TestSDKMaintenanceClient(TestSDKTeamsClient):
         cls.maintenance_ids = []
         cls.account_member_ids = []
         cls.team_ids = []
+        cls.maintenance_obj = []
         cls.uuid = cls.generate_uuid()
         cls.teams_client = TeamsClient(client=cls.client)
         cls.team_ids.append(cls.create_team(cls))
@@ -421,7 +446,7 @@ class TestSDKMaintenanceClient(TestSDKTeamsClient):
             end_time="2026-07-08T18:06:00",
             service_ids=["a91a3a00-8de9-472c-ad2e-61e7c89db062"],
         )
-
+        self.maintenance_obj.append(create_maintenance)
         self.maintenance_ids.append(create_maintenance.unique_id)
         assert create_maintenance.name == self.maintenance_name
         time.sleep(2)
@@ -438,9 +463,9 @@ class TestSDKMaintenanceClient(TestSDKTeamsClient):
 
         time.sleep(2)
 
-    def test_update_maintenance_by_id(self):
+    def test_update_maintenance(self):
         update_maintenance = self.maintenance_client.update_maintenance(
-            maintenance_id=self.maintenance_ids[0],
+            maintenance=self.maintenance_obj[0],
             name="Updated Maintenance Name",
             start_time="2026-07-08T18:06:00",
             end_time="2026-07-08T18:06:00",
@@ -451,7 +476,7 @@ class TestSDKMaintenanceClient(TestSDKTeamsClient):
 
     def test_delete_maintenance(self):
         delete_maintenance = self.maintenance_client.delete_maintenance(
-            maintenance_id=self.maintenance_ids[0]
+            maintenance=self.maintenance_obj[0]
         )
 
         time.sleep(2)
@@ -489,7 +514,7 @@ class TestSDKIncidentsClient(SDKTestingClient):
     def test_create_incident_note(self):
         # Creating a Incident Note client
         self.note_client = self.incident_client.get_note_client(
-            incident_id=self.incident_ids[0]
+            incident=self.incident_obj
         )
 
         # Creating an incident note, attaching it to an incident
@@ -508,20 +533,20 @@ class TestSDKIncidentsClient(SDKTestingClient):
 
     def test_get_incident_note_by_id(self):
         get_incident_note_by_id = self.note_client.get_incident_note_by_id(
-            incident_note_unique_id=self.incident_notes_list[0]
+            incident_note_unique_id=self.incident_note_obj.unique_id
         )
         time.sleep(2)
 
     # get this checked tomorrow
     def test_update_incident_note(self):
         update_incident_note = self.note_client.update_incident_note(
-            incident_note_unique_id=self.incident_notes_list[0],
+            incident_note=self.incident_note_obj,
             note="Updated Incident Note",
         )
 
     def test_delete_incident_note(self):
         delete_incident_note = self.note_client.delete_incident_note(
-            incident_note_unique_id=self.incident_notes_list[0]
+            incident_note=self.incident_note_obj
         )
 
     # get this checked tomorrow
@@ -552,13 +577,13 @@ class TestSDKIncidentsClient(SDKTestingClient):
 
     def test_get_alerts_by_incident(self):
         get_alerts_by_incident = self.incident_client.get_alerts_for_incident(
-            incident_number=self.incident_number[0]
+            incident_number=self.incident_obj.incident_number
         )
         time.sleep(2)
 
     def test_update_incident(self):
         update_incident = self.incident_client.update_incident(
-            incident_id=self.incident_ids[0],
+            incident_id=self.incident_obj.unique_id,
             title="Updated Incident Name",
             status=3,
             service="a91a3a00-8de9-472c-ad2e-61e7c89db062",
@@ -633,7 +658,7 @@ class TestSDKPostMortemClient(TestSDKTeamsClient):
 
         # Resolve the incident
         resolve_incident = self.incident_client.update_incident(
-            incident_id=self.incident_ids[0],
+            self.postmortem_obj,
             title=self.incident_name,
             status=3,
         )
@@ -680,7 +705,7 @@ class TestSDKPrioritiesClient(TestSDKTeamsClient):
 
     def test_update_priority(self):
         update_priority = self.priority_client.update_priority(
-            self.priority_by_id,
+            self.priority_obj,
             name="Test Priority Updated",
             description="Test Priority",
         )
@@ -689,7 +714,7 @@ class TestSDKPrioritiesClient(TestSDKTeamsClient):
         time.sleep(2)
 
     def test_delete_priority(self):
-        delete_priority = self.priority_client.delete_priority(self.priority_ids[0])
+        delete_priority = self.priority_client.delete_priority(self.priority_obj)
         time.sleep(2)
 
 
@@ -730,7 +755,7 @@ class TestSDKRolesClient(TestSDKTeamsClient):
 
     def test_update_incident_role(self):
         self.update_role = self.role_client.update_incident_role(
-            role=self.get_role_by_id,
+            role=self.role_obj,
             title="Test Role Updated",
         )
         assert self.update_role.title == "Test Role Updated"
@@ -738,7 +763,7 @@ class TestSDKRolesClient(TestSDKTeamsClient):
 
     def test_delete_incident_role(self):
         self.delete_role = self.role_client.delete_incident_role(
-            role=self.get_role_by_id
+            role=self.role_obj,
         )
         time.sleep(2)
 
@@ -751,6 +776,7 @@ class TestSDKSchedulesClient(TestSDKTeamsClient):
         cls.team_ids = []
         cls.schedules_ids = []
         cls.account_member_ids = []
+        cls.schedules_obj = []
         cls.uuid = cls.generate_uuid()
         cls.teams_client = TeamsClient(client=cls.client)
         cls.team_ids.append(cls.create_team(cls))
@@ -795,6 +821,7 @@ class TestSDKSchedulesClient(TestSDKTeamsClient):
         )
 
         self.schedules_ids.append(create_schedule.unique_id)
+        self.schedules_obj.append(create_schedule)
         assert create_schedule.name == self.schedules_name
         time.sleep(2)
 
@@ -812,14 +839,14 @@ class TestSDKSchedulesClient(TestSDKTeamsClient):
 
     def test_update_schedule(self):
         update_schedule = self.schedules_client.update_schedule(
-            schedule=self.get_schedule_by_id,
+            schedule=self.schedules_obj[0],
             name="Test Schedule Updated",
         )
         assert update_schedule.name == "Test Schedule Updated"
 
     def test_delete_schedule(self):
         delete_schedule = self.schedules_client.delete_schedule(
-            schedule=self.get_schedule_by_id
+            schedule=self.schedules_obj[0]
         )
 
 
@@ -897,135 +924,3 @@ class TestSDKServicesClient(TestSDKTeamsClient):
             team_priority=str(self.priority_ids[0]),
             sla=str(self.sla_ids[0]),
         )
-
-
-@pytest.mark.integrations
-class TestSDKIntegrationClient(TestSDKServicesClient):
-    @classmethod
-    def setup_class(cls):
-        super().setup_class()
-        cls.service_ids = []
-        integration_client = cls.service_client.get_integration_client(
-            svc=cls.service_ids[0]
-        )
-
-
-@pytest.mark.sla
-class TestSDKSLAClient(SDKTestingClient):
-    pass
-
-
-@pytest.mark.tags
-class TestSDKTagsClient(SDKTestingClient):
-    pass
-
-
-@pytest.mark.tasktemplates
-class TestSDKTaskTemplatesClient(SDKTestingClient):
-    pass
-
-
-if __name__ == "__main__":
-    # escalations_client = TestSDKEscalationPolicyClient()
-    # escalations_client.test_create_escalation_policy()
-
-    teams_client = TestSDKTeamsClient()
-    teams_client.test_create_team()
-    teams_client.test_find_team_by_id()
-    teams_client.test_list_team_member()
-    teams_client.test_add_team_member()
-    teams_client.test_find_team_member()
-    teams_client.test_update_team_member()
-    teams_client.test_delete_team_member()
-    teams_client.test_fetch_team_permissions()
-    teams_client.update_team_permissions()
-    teams_client.test_update_teams()
-    teams_client.test_delete_teams()
-
-    # router_client = TestSDKGERClients()
-    # router_client.test_create_router()
-    # router_client.test_list_routers()
-    # router_client.test_get_router_by_id()
-    # router_client.test_update_router()
-    # router_client.test_delete_router()
-
-    # account_members = TestSDKAccountMembersClient()
-    # account_members.test_account_members_invite()
-    # account_members.test_account_member_update()
-    # account_members.test_get_account_member()
-    # account_members.test_get_all_account_members()
-    # account_members.test_delete_account_member()
-
-    # account_role = TestSDKAccountRolesClient()
-    # account_role.test_create_account_role()
-    # account_role.test_get_account_role()
-    # account_role.test_list_account_roles()
-    # account_role.test_update_account_role()
-    # account_role.test_delete_account_role()
-
-    # event = TestSDKEventsClient()
-    # event.test_get_router_client()
-    # event.test_create_event()
-
-    # incidents = TestSDKIncidentsClient()
-    # incidents.test_create_incident()
-    # incidents.test_get_all_incidents()
-    # incidents.test_get_alerts_by_incident()
-    # incidents.test_update_incident()
-
-    # incidents.test_create_incident_note()
-    # incidents.test_get_all_incident_notes()
-    # # get this checked tomorrow
-    # # incidents.test_get_incident_note_by_id()
-    # incidents.test_update_incident_note()
-    # incidents.test_delete_incident_note()
-    # # get this checked tomorrow - all of these below
-    # incidents.test_create_incident_tag()
-    # incidents.test_get_all_tags()
-    # incidents.test_get_tag_by_id()
-    # incidents.test_delete_incident_tag()
-
-    # escalations_client = TestSDKEscalationPolicyClient()
-    # escalations_client.test_create_escalation_policy()
-    # escalations_client.test_get_esp_by_id()
-    # escalations_client.test_update_esp()
-    # escalations_client.test_get_all_policies()
-    # escalations_client.test_delete_esp()
-
-    # Run this, and ask what is "Maintenance_Template"
-    # add Maintenance_Template to the model
-    # maintenance_client = TestSDKMaintenanceClient()
-    # maintenance_client.test_create_maintenance()
-    # maintenance_client.test_get_all_maintenance()
-    # maintenance_client.test_get_maintenance_by_id()
-    # maintenance_client.test_update_maintenance_by_id()
-    # maintenance_client.test_delete_maintenance()
-
-    # postmortem_client = TestSDKPostMortemClient()
-    # postmortem_client.test_create_postmortem()
-    # postmortem_client.test_get_postmortem_by_id()
-    # postmortem_client.test_update_postmortem()
-    # postmortem_client.test_delete_postmortem()
-
-    # priority_client = TestSDKPrioritiesClient()
-    # priority_client.test_create_priority()
-    # priority_client.test_get_all_priorities()
-    # priority_client.test_get_priority_by_id()
-    # priority_client.test_update_priority()
-    # priority_client.test_delete_priority()
-
-    # roles_client = TestSDKRolesClient()
-    # roles_client.test_create_role()
-    # roles_client.test_get_incident_role_by_id()
-    # roles_client.test_update_incident_role()
-    # roles_client.test_delete_incident_role()
-
-    # schedules_client = TestSDKSchedulesClient()
-    # schedules_client.test_create_schedule()
-    # schedules_client.test_get_all_schedules()
-    # schedules_client.test_get_schedule_by_id()
-    # schedules_client.test_update_schedule()
-    # schedules_client.test_delete_schedule()
-
-    # services_client = TestSDKServicesClient()
-    # services_client.test_create_service()
